@@ -1,4 +1,5 @@
 import asyncio
+import os
 from pathlib import Path
 
 from telethon import TelegramClient
@@ -31,6 +32,8 @@ class Telegram:
         """
 
         async def _upload():
+            uploaded = False
+
             try:
                 await self.client.connect()
 
@@ -71,6 +74,7 @@ class Telegram:
                     supports_streaming=True,
                 )
 
+                uploaded = True
                 logger.info("File successfully uploaded to Telegram.\n")
 
             except Exception as e:
@@ -78,5 +82,15 @@ class Telegram:
 
             finally:
                 await self.client.disconnect()
+
+                # Yükleme başarılıysa dosyayı sil
+                if uploaded:
+                    try:
+                        os.remove(file_path)
+                        logger.info(f"Local file deleted: {Path(file_path).name}\n")
+                    except Exception as e:
+                        logger.error(
+                            f"Could not delete local file: {e}\n", exc_info=True
+                        )
 
         asyncio.run(_upload())
